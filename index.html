@@ -15,6 +15,9 @@ body {
 <script>
 
 function drawBoard(svg, gameState) {
+  while (svg.children.length)
+    svg.removeChild(svg.children[0]);
+
   const { sideCellCount, cells } = gameState;
   const r = 10;
 
@@ -43,25 +46,99 @@ function drawBoard(svg, gameState) {
 
       cell.setAttribute('stroke', "gray");
       cell.setAttribute('stroke-width', 0.5);
-      cell.setAttribute('fill', "white");
-      // TODO fill based on cells[i][j]
+      cell.setAttribute('fill', playerColor(cells[i][j]));
+
+      cell.setAttribute('data-i', i);
+      cell.setAttribute('data-j', j);
 
       svg.appendChild(cell);
     }
   }
 }
 
+function playerColor(player) {
+  switch (player) {
+  case 'x': return 'red';
+  case 'o': return 'blue';
+  case ' ': return 'white';
+  default: throw Error('invalid player ' + player);
+  }
+}
+
 function makeEmptyState(sideCellCount) {
   return {
     sideCellCount,
+    players: ['x', 'o'],
     cells:
-      new Array(sideCellCount).map(() =>
-        new Array(sideCellCount).map(() =>
+      [...new Array(sideCellCount)].map(() =>
+        [...new Array(sideCellCount)].map(() =>
           ' ')),
   };
 }
 const state = makeEmptyState(11);
 
-drawBoard(board, state);
+function traced(func) {
+  // usage:  myfunc = traced(myfunc)
+  return function() {
+    const result = func.apply(this, arguments);
+    console.log(func.name, ...arguments, result);
+    return result;
+  };
+}
+
+
+function updateGameState(state, move) {
+  const { player, i, j } = move;
+  const { sideCellCount, players, cells } = state;
+
+  if (state.players[0] !== player)
+    throw Error('wrong player');
+  if (cells[i][j] !== ' ')
+    throw Error('cell already filled');
+
+  return {
+    sideCellCount,
+    players: players.slice(1).concat([player]),
+    cells: updateGrid(cells, i, j, () => player),
+  };
+}
+function updateGrid(grid, i, j, cellUpdater) {
+  return updateArray(grid, i, (row) => updateArray(row, j, cellUpdater));
+}
+function updateArray(arr, i, update) {
+  return arr.slice(0, i).concat([update(arr[i])]).concat(arr.slice(i+1));
+}
+
+
+class Game {
+  constructor(sideCellCount, svg) {
+    this.svg = svg;
+    svg.game = this;
+
+    this.state = makeEmptyState(sideCellCount);
+
+    svg.addEventListener('click', ev => {
+      let { i, j } = ev.target.dataset;
+      if (i == null || j == null) return;
+
+      // convert from string back to number!!!!1
+      i = +i;
+      j = +j;
+      this.move({ player: this.state.players[0], i, j });
+    });
+
+    this.redraw();
+  }
+  move(move) {
+    const oldState = this.state;
+    this.state = updateGameState(this.state, move);
+    this.redraw();
+  }
+  redraw() {
+    drawBoard(this.svg, this.state);
+  }
+}
+
+const game = new Game(11, board);
 
 </script>
