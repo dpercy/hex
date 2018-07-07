@@ -9,6 +9,9 @@ body {
 #board circle.empty:hover {
   stroke-width: 3;
 }
+#board.blue-to-move circle.empty:hover { stroke: blue; }
+#board.red-to-move circle.empty:hover { stroke: red; }
+
 </style>
 
 <svg id="board"></svg>
@@ -82,6 +85,11 @@ function drawBoard(svg, gameState) {
   line(coord(e, s), coord(e, e), playerColor('x'));
   line(coord(s, s), coord(e, s), playerColor('o'));
   line(coord(s, e), coord(e, e), playerColor('o'));
+
+  // update top-level classes
+  svg.classList.remove('red-to-move');
+  svg.classList.remove('blue-to-move');
+  svg.classList.add(playerColor(gameState.players[0]) + '-to-move');
 }
 
 function playerColor(player) {
