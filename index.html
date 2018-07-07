@@ -28,10 +28,17 @@ function drawBoard(svg, gameState) {
 
   // off by one results in a little margin
   const totalWidth = (sideCellCount + 1) * (incIX + incJX);
-  const totalHeight = sideCellCount * (incIY - incJY);
+  const totalHeight = (sideCellCount + 0.75) * (incIY - incJY);
 
   const originX = (incIX + incJX);
   const originY = totalHeight/2;
+
+
+  function coord(i, j) {
+    return { x: originX + incIX*i + incJX*j,
+             y: originY + incIY*i + incJY*j };
+  }
+
 
   svg.setAttribute('width', totalWidth);
   svg.setAttribute('height', totalHeight);
@@ -39,9 +46,10 @@ function drawBoard(svg, gameState) {
   for (let i=0; i<sideCellCount; ++i) {
     for (let j=0; j<sideCellCount; ++j) {
       const cell = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
-      
-      cell.setAttribute('cx', originX + i*incIX + j*incJX);
-      cell.setAttribute('cy', originY + i*incIY + j*incJY);
+
+      const { x, y } = coord(i, j);
+      cell.setAttribute('cx', x);
+      cell.setAttribute('cy', y);
       cell.setAttribute('r', r);
 
       cell.setAttribute('stroke', "gray");
@@ -56,12 +64,30 @@ function drawBoard(svg, gameState) {
       svg.appendChild(cell);
     }
   }
+
+  // draw goal lines
+  function line(p1, p2, color) {
+    const line = document.createElementNS("http://www.w3.org/2000/svg", 'line');
+    line.setAttribute('stroke', color);
+    line.setAttribute('stroke-width', 3);
+    line.setAttribute('x1', p1.x);
+    line.setAttribute('y1', p1.y);
+    line.setAttribute('x2', p2.x);
+    line.setAttribute('y2', p2.y);
+    svg.appendChild(line);
+  }
+  const s = -1+0.25;
+  const e = sideCellCount-0.25;
+  line(coord(s, s), coord(s, e), playerColor('x'));
+  line(coord(e, s), coord(e, e), playerColor('x'));
+  line(coord(s, s), coord(e, s), playerColor('o'));
+  line(coord(s, e), coord(e, e), playerColor('o'));
 }
 
 function playerColor(player) {
   switch (player) {
-  case 'x': return 'red';
-  case 'o': return 'blue';
+  case 'x': return 'blue';
+  case 'o': return 'red';
   case ' ': return 'white';
   default: throw Error('invalid player ' + player);
   }
