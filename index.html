@@ -1,0 +1,52 @@
+<style>
+body {
+  margin: 0;
+  padding: 0;
+}
+#board {
+  background: lightgray;
+}
+</style>
+
+<svg id="board"></svg>
+<script>
+
+function initBoard(board) {
+  const sideCellCount = 11;
+  const r = 10;
+
+  const incIX = (r * 1.1) * 1;
+  const incIY = (r * 1.1) * Math.sqrt(3);
+  const incJX = incIX;
+  const incJY = -incIY;
+
+  // off by one results in a little margin
+  const totalWidth = (sideCellCount + 1) * (incIX + incJX);
+  const totalHeight = sideCellCount * (incIY - incJY);
+
+  const originX = (incIX + incJX);
+  const originY = totalHeight/2;
+
+  board.setAttribute('width', totalWidth);
+  board.setAttribute('height', totalHeight);
+
+  for (let i=0; i<sideCellCount; ++i) {
+    for (let j=0; j<sideCellCount; ++j) {
+      const cell = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+      
+      cell.setAttribute('cx', originX + i*incIX + j*incJX);
+      cell.setAttribute('cy', originY + i*incIY + j*incJY);
+      cell.setAttribute('r', r);
+
+      cell.setAttribute('stroke', "gray");
+      cell.setAttribute('stroke-width', 0.5);
+      cell.setAttribute('fill', "white");
+
+      board.appendChild(cell);
+    }
+  }
+}
+
+initBoard(board);
+
+</script>
