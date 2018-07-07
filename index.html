@@ -132,8 +132,6 @@ function updateGameState(state, move) {
   if (cells[i][j] !== ' ')
     throw Error('cell already filled');
 
-  // TODO detect when a player has won
-
   return {
     sideCellCount,
     players: players.slice(1).concat([player]),
@@ -147,6 +145,73 @@ function updateArray(arr, i, update) {
   return arr.slice(0, i).concat([update(arr[i])]).concat(arr.slice(i+1));
 }
 
+
+function findPath(cells, player, start, endCriterion, prefix) {
+  if (prefix.length > cells.length*cells.length)
+    throw Error('how can prefix be longer than grid area??');
+  // assumes a square grid
+  const [i, j] = start;
+  if (i < 0 || j < 0) return undefined;
+  if (i >= cells.length) return undefined;
+  if (j >= cells.length) return undefined;
+  if (cells[i][j] !== player) return undefined;
+  if (prefix.find(([ii, jj]) => ii === i && jj === j))
+    return undefined;
+  if (endCriterion(start))
+    return prefix.concat([start]);
+
+  // start is an [i, j] pair.
+  // endCriterion is a predicate on [i, j] pairs, telling you whether it's a valid end cell.
+  // prefix is the path we've traversed so far.
+  // returns a path (list of [i, j] pairs) if there is one; else undefined.
+
+  return findPaths(cells, player, getNeighbors(cells, player, start), endCriterion, prefix.concat([start]));
+}
+function findPaths(cells, player, startCells, endCriterion, prefix) {
+  for (const startCell of startCells) {
+    const path = findPath(cells, player, startCell, endCriterion, prefix);
+    if (path != null) return path;
+  }
+  return undefined;
+}
+function getNeighbors(cells, color, start) {
+  const [i, j] = start;
+
+  const result = [];
+  for (const ii of [-1, 0, +1]) {
+    for (const jj of [-1, 0, +1]) {
+      if (ii === 0 && jj === 0)
+        continue;
+      result.push([i + ii, j + jj]);
+    }
+  }
+  return result;
+}
+
+function whoWon(state) {
+  if ('winner' in state)
+    return state.winner;
+
+  const xPath = findPaths(
+    state.cells,
+    'x',
+    [...new Array(state.sideCellCount)].map((_, idx) => [0, idx]),
+    ([i, j]) => i === state.sideCellCount - 1,
+    []);
+  if (xPath != null)
+    return state.winner = { player: 'x', path: xPath };
+
+  const oPath = findPaths(
+    state.cells,
+    'o',
+    [...new Array(state.sideCellCount)].map((_, idx) => [idx, 0]),
+    ([i, j]) => j === state.sideCellCount - 1,
+    []);
+  if (oPath != null)
+    return state.winner = { player: 'o', path: oPath };
+
+  return state.winner = null;
+}
 
 class Game {
   constructor(sideCellCount, svg) {
@@ -171,6 +236,7 @@ class Game {
   move(move) {
     const oldState = this.state;
     this.state = updateGameState(this.state, move);
+    console.log('winner?', whoWon(this.state));
     this.redraw();
   }
   redraw() {
@@ -178,6 +244,6 @@ class Game {
   }
 }
 
-const game = new Game(11, board);
+const game = new Game(2, board);
 
 </script>
