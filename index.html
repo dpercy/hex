@@ -165,7 +165,7 @@ function findPath(cells, player, start, endCriterion, prefix) {
   // prefix is the path we've traversed so far.
   // returns a path (list of [i, j] pairs) if there is one; else undefined.
 
-  return findPaths(cells, player, getNeighbors(cells, player, start), endCriterion, prefix.concat([start]));
+  return findPaths(cells, player, getNeighbors(cells, start), endCriterion, prefix.concat([start]));
 }
 function findPaths(cells, player, startCells, endCriterion, prefix) {
   for (const startCell of startCells) {
@@ -174,18 +174,19 @@ function findPaths(cells, player, startCells, endCriterion, prefix) {
   }
   return undefined;
 }
-function getNeighbors(cells, color, start) {
+function getNeighbors(cells, start) {
   const [i, j] = start;
 
-  const result = [];
-  for (const ii of [-1, 0, +1]) {
-    for (const jj of [-1, 0, +1]) {
-      if (ii === 0 && jj === 0)
-        continue;
-      result.push([i + ii, j + jj]);
-    }
-  }
-  return result;
+  // note this is not the usual square neighborhood:
+  // it's a hexagon in skewed coordinates.
+  return [
+    [i-1, j-1],
+    [i-1, j],
+    [i, j-1],
+    [i, j+1],
+    [i+1, j],
+    [i+1, j+1],
+  ];
 }
 
 function whoWon(state) {
@@ -244,6 +245,6 @@ class Game {
   }
 }
 
-const game = new Game(2, board);
+const game = new Game(11, board);
 
 </script>
