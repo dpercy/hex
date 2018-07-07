@@ -6,11 +6,14 @@ body {
 #board {
   background: lightgray;
 }
-#board circle.empty:hover {
+#board.blue-to-move circle.empty:hover {
   stroke-width: 3;
+  stroke: blue;
 }
-#board.blue-to-move circle.empty:hover { stroke: blue; }
-#board.red-to-move circle.empty:hover { stroke: red; }
+#board.red-to-move circle.empty:hover {
+  stroke-width: 3;
+  stroke: red;
+}
 
 </style>
 
@@ -89,7 +92,12 @@ function drawBoard(svg, gameState) {
   // update top-level classes
   svg.classList.remove('red-to-move');
   svg.classList.remove('blue-to-move');
-  svg.classList.add(playerColor(gameState.players[0]) + '-to-move');
+  const winner = whoWon(gameState);
+  if (winner == null) {
+    svg.classList.add(playerColor(gameState.players[0]) + '-to-move');
+  } else {
+    svg.classList.add(playerColor(winner.player) + '-won');
+  }
 }
 
 function playerColor(player) {
@@ -223,6 +231,8 @@ class Game {
 
     svg.addEventListener('click', ev => {
       if (!ev.target.classList.contains('empty')) return;
+      if (whoWon(this.state)) return;
+
       let { i, j } = ev.target.dataset;
       if (i == null || j == null) return;
 
@@ -236,6 +246,8 @@ class Game {
   }
   move(move) {
     const oldState = this.state;
+    if (whoWon(oldState))
+      throw Error('game already won');
     this.state = updateGameState(this.state, move);
     console.log('winner?', whoWon(this.state));
     this.redraw();
@@ -245,6 +257,6 @@ class Game {
   }
 }
 
-const game = new Game(11, board);
+const game = new Game(4, board);
 
 </script>
