@@ -6,7 +6,7 @@ body {
 #board {
   background: lightgray;
 }
-#board circle:hover {
+#board circle.empty:hover {
   stroke-width: 3;
 }
 </style>
@@ -47,6 +47,8 @@ function drawBoard(svg, gameState) {
       cell.setAttribute('stroke', "gray");
       cell.setAttribute('stroke-width', 0.5);
       cell.setAttribute('fill', playerColor(cells[i][j]));
+      if (cells[i][j] === ' ')
+        cell.classList.add('empty');
 
       cell.setAttribute('data-i', i);
       cell.setAttribute('data-j', j);
@@ -96,6 +98,8 @@ function updateGameState(state, move) {
   if (cells[i][j] !== ' ')
     throw Error('cell already filled');
 
+  // TODO detect when a player has won
+
   return {
     sideCellCount,
     players: players.slice(1).concat([player]),
@@ -118,6 +122,7 @@ class Game {
     this.state = makeEmptyState(sideCellCount);
 
     svg.addEventListener('click', ev => {
+      if (!ev.target.classList.contains('empty')) return;
       let { i, j } = ev.target.dataset;
       if (i == null || j == null) return;
 
