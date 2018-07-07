@@ -89,10 +89,25 @@ function drawBoard(svg, gameState) {
   line(coord(s, s), coord(e, s), playerColor('o'));
   line(coord(s, e), coord(e, e), playerColor('o'));
 
-  // update top-level classes
+  // draw winner path if there is one
+  const winner = whoWon(gameState);
+  if (winner != null) {
+    let ii, jj;
+    for (const [i, j] of winner.path) {
+      if (ii == null) {
+        [ii, jj] = [i, j];
+        continue;
+      }
+
+      line(coord(ii, jj), coord(i, j), 'white');
+
+      [ii, jj] = [i, j];
+    }
+  }
+
+  // update top-level CSS classes
   svg.classList.remove('red-to-move');
   svg.classList.remove('blue-to-move');
-  const winner = whoWon(gameState);
   if (winner == null) {
     svg.classList.add(playerColor(gameState.players[0]) + '-to-move');
   } else {
@@ -257,6 +272,6 @@ class Game {
   }
 }
 
-const game = new Game(4, board);
+const game = new Game(11, board);
 
 </script>
