@@ -6,13 +6,16 @@ body {
 #board {
   background: lightgray;
 }
+#board circle:hover {
+  stroke-width: 3;
+}
 </style>
 
 <svg id="board"></svg>
 <script>
 
-function initBoard(board) {
-  const sideCellCount = 11;
+function drawBoard(svg, gameState) {
+  const { sideCellCount, cells } = gameState;
   const r = 10;
 
   const incIX = (r * 1.1) * 1;
@@ -27,8 +30,8 @@ function initBoard(board) {
   const originX = (incIX + incJX);
   const originY = totalHeight/2;
 
-  board.setAttribute('width', totalWidth);
-  board.setAttribute('height', totalHeight);
+  svg.setAttribute('width', totalWidth);
+  svg.setAttribute('height', totalHeight);
 
   for (let i=0; i<sideCellCount; ++i) {
     for (let j=0; j<sideCellCount; ++j) {
@@ -41,12 +44,24 @@ function initBoard(board) {
       cell.setAttribute('stroke', "gray");
       cell.setAttribute('stroke-width', 0.5);
       cell.setAttribute('fill', "white");
+      // TODO fill based on cells[i][j]
 
-      board.appendChild(cell);
+      svg.appendChild(cell);
     }
   }
 }
 
-initBoard(board);
+function makeEmptyState(sideCellCount) {
+  return {
+    sideCellCount,
+    cells:
+      new Array(sideCellCount).map(() =>
+        new Array(sideCellCount).map(() =>
+          ' ')),
+  };
+}
+const state = makeEmptyState(11);
+
+drawBoard(board, state);
 
 </script>
